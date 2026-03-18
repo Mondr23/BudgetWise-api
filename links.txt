@@ -9,3 +9,6 @@ https://data360.worldbank.org/en/indicator/WB_WDI_ST_INT_ARVL?view=datatable
 
 # Travel Trip Records Dataset 
 https://www.kaggle.com/datasets/muqaddasejaz/travel-trip-records-dataset/suggestions
+
+# plane glp
+https://poly.pizza/m/3UtIosDm9u-

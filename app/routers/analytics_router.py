@@ -1,12 +1,19 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import text
 from app.database import engine
+from app.auth.api_key import verify_api_key
+from app.core.limiter import limiter
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 @router.get("/cheapest-cities")
-def cheapest_cities():
+@limiter.limit("5/minute")
+def cheapest_cities(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Returns cheapest cities based on daily cost
+    Protected by API key + rate limiting
+    """
 
     query = """
     SELECT c.city_name, t.daily_cost_estimate
@@ -22,7 +29,11 @@ def cheapest_cities():
 
 
 @router.get("/expensive-cities")
-def expensive_cities():
+@limiter.limit("5/minute")
+def expensive_cities(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Returns most expensive cities
+    """
 
     query = """
     SELECT c.city_name, t.daily_cost_estimate
@@ -38,7 +49,11 @@ def expensive_cities():
 
 
 @router.get("/best-weather")
-def best_weather():
+@limiter.limit("5/minute")
+def best_weather(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Cities with best weather (highest temperature)
+    """
 
     query = """
     SELECT c.city_name, w.temperature
@@ -54,7 +69,11 @@ def best_weather():
 
 
 @router.get("/top-tourism-countries")
-def top_tourism():
+@limiter.limit("5/minute")
+def top_tourism(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Countries with highest tourism numbers
+    """
 
     query = """
     SELECT country_code, tourist_arrivals
@@ -69,7 +88,11 @@ def top_tourism():
 
 
 @router.get("/best-budget-destinations")
-def best_budget():
+@limiter.limit("5/minute")
+def best_budget(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Best budget destinations with good weather
+    """
 
     query = """
     SELECT c.city_name, w.temperature, t.daily_cost_estimate
@@ -87,7 +110,11 @@ def best_budget():
 
 
 @router.get("/travel-value-index")
-def travel_value():
+@limiter.limit("5/minute")
+def travel_value(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Value index = tourism / cost
+    """
 
     query = """
     SELECT
@@ -107,7 +134,11 @@ def travel_value():
 
 
 @router.get("/healthy-cheap-cities")
-def healthy_cities():
+@limiter.limit("5/minute")
+def healthy_cities(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Cities with good air quality + low cost
+    """
 
     query = """
     SELECT
@@ -128,7 +159,11 @@ def healthy_cities():
 
 
 @router.get("/top-travel-destinations")
-def top_destinations():
+@limiter.limit("5/minute")
+def top_destinations(request: Request, api_key=Depends(verify_api_key)):
+    """
+    Top destinations based on temperature
+    """
 
     query = """
     SELECT
