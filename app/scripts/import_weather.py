@@ -1,38 +1,67 @@
 import pandas as pd
-import sqlite3
+from app.database import SessionLocal
+from app.models.city import City
+from app.models.country import Country
+from app.models.weather import Weather
 
-conn = sqlite3.connect("travel.db")
+# --- LOAD DATA ---
+weather_df = pd.read_csv("datasets/clean_weather.csv")
 
-# load dataset
-weather = pd.read_csv("datasets/clean_weather.csv")
+#  KEEP ONLY ONE ROW PER CITY + COUNTRY (the last Value)
+weather_df = weather_df.drop_duplicates(subset=["city", "country"])
 
-# load cities table
-cities = pd.read_sql("SELECT city_id, city_name FROM cities", conn)
+db = SessionLocal()
 
-# match weather cities to database cities
-weather = weather.merge(
-    cities,
-    left_on="city",
-    right_on="city_name",
-    how="left"
-)
+def normalize(text):
+    return str(text).strip().title()
 
-# keep only columns that exist in the database
-weather = weather[[
-    "city_id",
-    "temperature",
-    "humidity",
-    "wind_kph",
-    "precipitation",
-    "visibility",
-    "air_quality_pm25",
-    "condition",
-    "last_updated"
-]]
+inserted = 0
+skipped = 0
 
-# insert into database
-weather.to_sql("weather", conn, if_exists="append", index=False)
+for _, row in weather_df.iterrows():
 
-print("Weather data imported successfully")
+    city_name = normalize(row["city"])
+    country_name = normalize(row["country"])
+    condition = str(row["condition"]).strip()
 
-conn.close()
+    # --- GET COUNTRY ---
+    country = db.query(Country).filter_by(
+        country_name=country_name
+    ).first()
+
+    if not country:
+        skipped += 1
+        continue
+
+    # --- GET CITY ---
+    city = db.query(City).filter_by(
+        city_name=city_name,
+        country_code=country.country_code
+    ).first()
+
+    if not city:
+        skipped += 1
+        continue
+
+    #  CHECK IF CITY ALREADY HAS WEATHER
+    existing = db.query(Weather).filter_by(
+        city_id=city.city_id
+    ).first()
+
+    if existing:
+        continue  # skip (only one allowed)
+
+    # --- INSERT ---
+    new_weather = Weather(
+        city_id=city.city_id,
+        condition=condition
+    )
+
+    db.add(new_weather)
+    inserted += 1
+
+db.commit()
+db.close()
+
+print(f" Inserted {inserted} weather records (1 per city)")
+print(f" Skipped {skipped}")

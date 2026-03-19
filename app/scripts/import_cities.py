@@ -1,24 +1,70 @@
 import pandas as pd
-import sqlite3
+from app.database import SessionLocal
+from app.models.city import City
+from app.models.country import Country 
 
-conn = sqlite3.connect("travel.db")
-
-travel_cost = pd.read_csv("datasets/clean_travel_cost.csv")
+# --- LOAD DATASETS ---
+cost = pd.read_csv("datasets/clean_travel_cost.csv")
 weather = pd.read_csv("datasets/clean_weather.csv")
 
-cities = pd.concat([
-    travel_cost[["city"]],
-    weather[["city"]]
-]).drop_duplicates()
+# --- DB SESSION ---
+db = SessionLocal()
 
-cities["country_code"] = None
-cities["latitude"] = None
-cities["longitude"] = None
+# --- NORMALIZE FUNCTION ---
+def normalize(text):
+    return str(text).strip().title()
 
-cities.columns = ["city_name", "country_code", "latitude", "longitude"]
+# --- STORE UNIQUE CITIES ---
+cities = set()
 
-cities.to_sql("cities", conn, if_exists="append", index=False)
+# --- FROM COST DATA ---
+for _, row in cost.iterrows():
+    city = normalize(row["city"])
+    country = normalize(row["country"])
 
-print("Cities imported")
+    if city and country:
+        cities.add((city, country))
 
-conn.close()
+# --- FROM WEATHER DATA ---
+for _, row in weather.iterrows():
+    city = normalize(row["city"])
+    country = normalize(row["country"])
+
+    if city and country:
+        cities.add((city, country))
+
+
+# --- INSERT ---
+count = 0
+skipped = 0
+
+for city_name, country_name in cities:
+
+    #  GET COUNTRY FROM DB 
+    country = db.query(Country).filter_by(country_name=country_name).first()
+
+    if not country:
+        skipped += 1
+        continue  # skip if country not found
+
+    code = country.country_code
+
+    # --- CHECK DUPLICATE CITY ---
+    existing = db.query(City).filter_by(
+        city_name=city_name,
+        country_code=code
+    ).first()
+
+    if not existing:
+        db.add(City(
+            city_name=city_name,
+            country_code=code
+        ))
+        count += 1
+
+
+db.commit()
+db.close()
+
+print(f" Inserted {count} unique cities")
+print(f" Skipped {skipped} (missing country match)")

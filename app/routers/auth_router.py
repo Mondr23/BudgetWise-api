@@ -1,42 +1,36 @@
 from fastapi import APIRouter, HTTPException
 from passlib.context import CryptContext
+from pydantic import BaseModel
 from app.auth.auth import create_access_token
+from app.database import SessionLocal
+from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-pwd_context = CryptContext(schemes=["sha256_crypt"])
+pwd_context = CryptContext(schemes=["bcrypt"])
 
-# TEMP users (later you can move to database)
-users = {
-    "admin": {
-        "username": "admin",
-        "password": pwd_context.hash("admin123"),
-        "role": "admin"
-    },
-    "user": {
-        "username": "user",
-        "password": pwd_context.hash("user123"),
-        "role": "user"
-    }
-}
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 
 @router.post("/login")
-def login(username: str, password: str):
-    """
-    Login endpoint → returns JWT token
-    """
+def login(data: LoginRequest):
+    db = SessionLocal()
 
-    user = users.get(username)
+    user = db.query(User).filter(
+        User.username == data.username
+    ).first()
 
-    # check username + password
-    if not user or not pwd_context.verify(password, user["password"]):
+    if not user or not pwd_context.verify(data.password, user.password):
+        db.close()
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # create token with role
     token = create_access_token({
-        "sub": user["username"],
-        "role": user["role"]
+        "sub": user.username,
+        "role": user.role
     })
 
+    db.close()
     return {"access_token": token}

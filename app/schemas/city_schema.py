@@ -10,3 +10,4 @@ class CityCreate(BaseModel):
 
     city_name: constr(min_length=2, max_length=50)
     country_code: constr(min_length=2, max_length=3)
+

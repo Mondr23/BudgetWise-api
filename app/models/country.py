@@ -5,4 +5,4 @@ class Country(Base):
     __tablename__ = "countries"
 
     country_code = Column(String, primary_key=True)
-    country_name = Column(String)
+    country_name = Column(String, unique=True )
