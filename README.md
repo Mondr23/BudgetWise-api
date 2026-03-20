@@ -17,10 +17,19 @@ The system provides both **CRUD operations** and  **analytics-based endpoints** 
 👉 API Documentation (Swagger):
 [https://budgetwise-api-6tzv.onrender.com/docs#/](https://budgetwise-api-6tzv.onrender.com/docs#/)
 
-👉 ReDoc :
-https://budgetwise-api-6tzv.onrender.com/redoc
+👉 ReDoc : [ReDoc](https://budgetwise-api-6tzv.onrender.com/redoc "https://budgetwise-api-6tzv.onrender.com/redoc")
+
 
 ---
+
+# API Documination 
+
+* **PDF Version:**
+  * api_documentation.pdf
+*  **API Documentation (Swagger):**
+  [https://budgetwise-api-6tzv.onrender.com/docs#/](https://budgetwise-api-6tzv.onrender.com/docs#/)
+
+*  **ReDoc :** [ReDoc](https://budgetwise-api-6tzv.onrender.com/redoc "https://budgetwise-api-6tzv.onrender.com/redoc")
 
 # Core Features
 
