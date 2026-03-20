@@ -1,87 +1,213 @@
-"""
-test_countries.py
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
 
-This file tests all endpoints related to COUNTRIES.
-
-Testing includes:
-1. API Endpoint Testing
-2. Error Testing
-3. Response Validation
-"""
-
-from tests.conftest import client
+client = TestClient(app)
 
 
-def test_get_countries():
-    """
-    API Endpoint Test
+# -------------------------
+# HELPER TOKENS
+# -------------------------
 
-    This test checks if the endpoint:
-        GET /countries/
+# login as admin
+def get_admin_token():
+    response = client.post("/auth/login", json={
+        "username": "admin",
+        "password": "admin123"
+    })
+    return response.json()["access_token"]
 
-    Returns:
-        - status code 200
-        - a list of countries
-    """
 
+# login as normal user
+def get_user_token():
+    response = client.post("/auth/login", json={
+        "username": "user",
+        "password": "user123"
+    })
+    return response.json()["access_token"]
+
+
+# -------------------------
+# PUBLIC ENDPOINT TESTS
+# -------------------------
+
+# should return list of countries
+def test_get_all_countries():
     response = client.get("/countries/")
-
-    # Check HTTP response status
     assert response.status_code == 200
-
-    # Check response format is a list
     assert isinstance(response.json(), list)
 
 
-def test_create_country():
-    """
-    API Endpoint Test
+# invalid country code should return 404
+def test_get_country_not_found():
+    response = client.get("/countries/ZZZ")
+    assert response.status_code == 404
 
-    This test verifies that we can create a country
-    using the endpoint:
 
-        POST /countries/
-    """
+# -------------------------
+# CREATE COUNTRY TESTS
+# -------------------------
+
+# no token → should fail
+def test_create_country_no_token():
+    response = client.post("/countries/", json={
+        "country_name": "Testland",
+        "country_code": "TL"
+    })
+
+    assert response.status_code in [401, 403]
+
+
+# normal user should not be allowed
+def test_create_country_as_user_forbidden():
+    token = get_user_token()
 
     response = client.post(
         "/countries/",
-        params={
-            "country_code": "JP",
-            "country_name": "Japan"
-        }
+        json={
+            "country_name": "Userland",
+            "country_code": "UL"
+        },
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code in [401, 403]
+
+
+# admin can create country
+def test_create_country_admin_success():
+    token = get_admin_token()
+
+    import uuid
+    unique_code = str(uuid.uuid4())[:2].upper()
+
+    response = client.post(
+        "/countries/",
+        json={
+            "country_name": f"Country {unique_code}",
+            "country_code": unique_code
+        },
+        headers={"Authorization": f"Bearer {token}"}
     )
 
     assert response.status_code == 200
 
-    data = response.json()
 
-    # Validate returned data
-    assert data["country_code"] == "JP"
-    assert data["country_name"] == "Japan"
+# duplicate country should fail
+def test_create_duplicate_country():
+    token = get_admin_token()
+
+    client.post(
+        "/countries/",
+        json={"country_name": "DuplicateLand", "country_code": "DL"},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    response = client.post(
+        "/countries/",
+        json={"country_name": "DuplicateLand", "country_code": "DL"},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 400
 
 
-def test_get_country_by_code():
-    """
-    Integration Test
+# -------------------------
+# UPDATE COUNTRY TESTS
+# -------------------------
 
-    This test ensures we can retrieve
-    a country that was created earlier.
-    """
+# admin updates country name
+def test_update_country_admin():
+    token = get_admin_token()
 
-    response = client.get("/countries/code/JP")
+    import uuid
+    code = str(uuid.uuid4())[:2].upper()
+
+    # create country first
+    client.post(
+        "/countries/",
+        json={
+            "country_name": f"OldName {code}",
+            "country_code": code
+        },
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    response = client.put(
+        f"/countries/{code}",
+        params={"country_name": f"NewName {code}"},
+        headers={"Authorization": f"Bearer {token}"}
+    )
 
     assert response.status_code == 200
-    assert response.json()["country_code"] == "JP"
 
 
-def test_country_not_found():
-    """
-    Error Testing
+# update non-existing country
+def test_update_country_not_found():
+    token = get_admin_token()
 
-    Requesting a non-existing country
-    should return a 404 error.
-    """
-
-    response = client.get("/countries/code/XXX")
+    response = client.put(
+        "/countries/ZZZ",
+        params={"country_name": "DoesNotExist"},
+        headers={"Authorization": f"Bearer {token}"}
+    )
 
     assert response.status_code == 404
+
+
+# no token → should fail
+def test_update_country_no_token():
+    response = client.put(
+        "/countries/US",
+        params={"country_name": "Fail"}
+    )
+
+    assert response.status_code in [401, 403]
+
+
+# -------------------------
+# DELETE COUNTRY TESTS
+# -------------------------
+
+# admin deletes country
+def test_delete_country_admin():
+    token = get_admin_token()
+
+    import uuid
+    code = str(uuid.uuid4())[:2].upper()
+
+    # create first
+    client.post(
+        "/countries/",
+        json={
+            "country_name": f"DeleteMe {code}",
+            "country_code": code
+        },
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    response = client.delete(
+        f"/countries/{code}",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+
+
+# delete non-existing country
+def test_delete_country_not_found():
+    token = get_admin_token()
+
+    response = client.delete(
+        "/countries/ZZZ",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 404
+
+
+# no token → should fail
+def test_delete_country_no_token():
+    response = client.delete("/countries/US")
+
+    assert response.status_code in [401, 403]
