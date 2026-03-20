@@ -16,7 +16,7 @@ def get_all_weather():
 
     return weather
 
-
+# Get weather data for a specific city by city_id
 @router.get("/{city_id}")
 def get_weather(city_id: int):
 

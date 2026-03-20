@@ -4,7 +4,7 @@ from app.models.city import City
 from app.models.travel_cost import TravelCost
 from app.models.weather import Weather
 from app.models.review import Review
-from app.models.tourism import Tourism  # ✅ NEW
+from app.models.tourism import Tourism  
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
 
@@ -34,7 +34,7 @@ def best_destination(
         daily_cost = cost.daily_cost_estimate
         estimated_trip_cost = daily_cost * days
 
-        # ❌ skip if over budget
+        #  skip if over budget
         if estimated_trip_cost > budget:
             continue
 
@@ -43,12 +43,12 @@ def best_destination(
             Weather.city_id == city.city_id
         ).first()
 
-        # 🔥 WEATHER FILTER
+        #  WEATHER FILTER
         if weather_pref:
             if not weather or weather.condition.lower() != weather_pref.lower():
                 continue
 
-        # --- GET TOURISM (LATEST YEAR) ---
+        #  GET TOURISM 
         tourism = db.query(Tourism).filter(
             Tourism.country_code == city.country_code
         ).order_by(Tourism.year.desc()).first()
@@ -83,7 +83,7 @@ def best_destination(
             "country_code": city.country_code,
             "estimated_trip_cost": round(estimated_trip_cost, 2),
             "weather": weather.condition if weather else None,
-            "tourism": tourism_info,  # ✅ NEW
+            "tourism": tourism_info,  
             "user_experience": user_experience
         })
 

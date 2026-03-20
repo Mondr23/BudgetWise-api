@@ -1,8 +1,3 @@
-# ---------------------------------------------
-# auth.py
-# Handles JWT creation and verification
-# ---------------------------------------------
-
 import os
 from dotenv import load_dotenv
 from jose import jwt, JWTError, ExpiredSignatureError

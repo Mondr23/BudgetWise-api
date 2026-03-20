@@ -20,6 +20,8 @@ def get_cities():
     return cities
 
 
+
+# Get cities by country code
 @router.get("/country/{country_code}")
 def get_cities_by_country(country_code: str):
     db = SessionLocal()
@@ -27,7 +29,7 @@ def get_cities_by_country(country_code: str):
     db.close()
     return cities
 
-
+# Get one city by ID
 @router.get("/{city_id}")
 def get_city(city_id: int):
     db = SessionLocal()
@@ -61,6 +63,7 @@ def create_city(
         City.country_code == country_code
     ).first()
 
+# check if city already exists
     if existing:
         db.close()
         raise HTTPException(status_code=400, detail="City already exists")

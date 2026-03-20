@@ -15,11 +15,12 @@ def create_review(
 ):
     db = SessionLocal()
 
-    # simple validation
+    # simple validation for rating  must be between 0 and 5 
     if value_rating < 0 or value_rating > 5:
         db.close()
         raise HTTPException(status_code=400, detail="Rating must be between 0 and 5")
 
+# create review object
     review = Review(
         city_id=city_id,
         user_name=user_name,
@@ -46,6 +47,8 @@ def get_reviews_by_city(city_id: int):
 
     db.close()
 
+
+# if no reviews found → return message
     if not reviews:
         return {
             "city_id": city_id,

@@ -10,6 +10,7 @@ from app.models.tourism import Tourism
 router = APIRouter(prefix="/destinations", tags=["Destinations"])
 
 
+# get summary by city OR country endpoint
 @router.get("/summary")
 def get_destination_summary(
     city: str = Query(None),
@@ -17,6 +18,7 @@ def get_destination_summary(
 ):
     db = SessionLocal()
 
+ # user must provide at least one parameter
     if not city and not country:
         raise HTTPException(
             status_code=400,
@@ -61,6 +63,7 @@ def get_destination_summary(
 
         # --- USER EXPERIENCE ---
         if reviews:
+              # convert reviews into simple list
             user_experience = [
                 {
                     "user": r.user_name,
@@ -107,6 +110,7 @@ def get_destination_summary(
         else:
             tourism_info = "Tourism data not available"
 
+# get all cities in this country
         cities = db.query(City).filter(
             City.country_code == country_obj.country_code
         ).all()

@@ -1,5 +1,3 @@
-# Input validation for city
-
 from pydantic import BaseModel, constr
 
 

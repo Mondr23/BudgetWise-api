@@ -74,7 +74,7 @@ def compare_cities(
         db.close()
         raise HTTPException(status_code=404, detail="One or both cities not found")
 
-    # --- WEATHER SCORE (SMART FIX 🔥) ---
+    # WEATHER SCORE 
     weather_score = {
         "Sunny": 3,
         "Cloudy": 2,

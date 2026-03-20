@@ -10,6 +10,7 @@ def get_tourism(country_code: str):
 
     db = SessionLocal()
 
+   # get all tourism records for this country
     tourism = db.query(Tourism).filter(
         Tourism.country_code == country_code
     ).all()

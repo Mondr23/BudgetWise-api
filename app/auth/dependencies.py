@@ -1,8 +1,3 @@
-# ---------------------------------------------
-# dependencies.py
-# Handles user extraction + role checks
-# ---------------------------------------------
-
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.auth.auth import verify_token
