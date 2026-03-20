@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+import uuid
 
 client = TestClient(app)
 
@@ -78,14 +79,13 @@ def test_create_country_as_user_forbidden():
 def test_create_country_admin_success():
     token = get_admin_token()
 
-    import uuid
-    unique_code = str(uuid.uuid4())[:2].upper()
+    code = str(uuid.uuid4())[:3].upper()
 
     response = client.post(
         "/countries/",
         json={
-            "country_name": f"Country {unique_code}",
-            "country_code": unique_code
+            "country_name": "TestLand",
+            "country_code": code
         },
         headers={"Authorization": f"Bearer {token}"}
     )

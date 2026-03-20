@@ -11,7 +11,7 @@ from tests.conftest import client
 # -----------------------------
 def test_create_review():
     res = client.post("/reviews/", params={
-        "city_id": 1,
+        "city_id": 3,
         "user_name": "Tester",
         "money_spent": 500,
         "trip_days": 5,
@@ -27,7 +27,7 @@ def test_create_review():
 # -----------------------------
 def test_invalid_review():
     res = client.post("/reviews/", params={
-        "city_id": 1,
+        "city_id": 3,
         "user_name": "Tester",
         "money_spent": 500,
         "trip_days": 5,

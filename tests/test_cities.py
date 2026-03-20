@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+import uuid
 
 # create test client
 client = TestClient(app)
@@ -60,7 +61,7 @@ def test_get_cities_by_country():
 def test_create_city_no_token():
     response = client.post("/cities/", json={
         "city_name": "Test City",
-        "country_code": "TC"
+        "country_code": "LY"
     })
 
     assert response.status_code in [401, 403]
@@ -74,7 +75,7 @@ def test_create_city_as_user_forbidden():
         "/cities/",
         json={
             "city_name": "User City",
-            "country_code": "UC"
+            "country_code": "LY"
         },
         headers={"Authorization": f"Bearer {token}"}
     )
@@ -86,14 +87,14 @@ def test_create_city_as_user_forbidden():
 def test_create_city_admin_success():
     token = get_admin_token()
 
-    import uuid
+
     unique_name = f"Admin City {uuid.uuid4()}"  # avoid duplicates
 
     response = client.post(
         "/cities/",
         json={
             "city_name": unique_name,
-            "country_code": "AC"
+            "country_code": "ARE"
         },
         headers={"Authorization": f"Bearer {token}"}
     )
@@ -105,15 +106,19 @@ def test_create_city_admin_success():
 def test_create_duplicate_city():
     token = get_admin_token()
 
+    country_code = "PER"
+
+    # create first city 
     client.post(
         "/cities/",
-        json={"city_name": "Duplicate City", "country_code": "DC"},
+        json={"city_name": "Lima Test Duplicate", "country_code": country_code},
         headers={"Authorization": f"Bearer {token}"}
     )
 
+    # try duplicate
     response = client.post(
         "/cities/",
-        json={"city_name": "Duplicate City", "country_code": "DC"},
+        json={"city_name": "Lima Test Duplicate", "country_code": country_code},
         headers={"Authorization": f"Bearer {token}"}
     )
 
@@ -135,7 +140,7 @@ def test_update_city_admin():
         "/cities/",
         json={
             "city_name": f"Update Me {uuid.uuid4()}",
-            "country_code": "UM"
+            "country_code": "ARE"
         },
         headers={"Authorization": f"Bearer {token}"}
     )
@@ -184,10 +189,14 @@ def test_update_city_no_token():
 def test_delete_city_admin():
     token = get_admin_token()
 
-    # create city first
+    country_code = "PER"
+
+    # create UNIQUE city 
+    city_name = f"Lima Delete {uuid.uuid4()}"
+
     create = client.post(
         "/cities/",
-        json={"city_name": "Delete Me", "country_code": "DM"},
+        json={"city_name": city_name, "country_code": country_code},
         headers={"Authorization": f"Bearer {token}"}
     )
 
