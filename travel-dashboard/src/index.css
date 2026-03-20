@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  background: radial-gradient(circle at 20% 20%, #020617, #020617 60%, #01030a);
+  overflow-x: hidden;
+}
+
+/* STARFIELD */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, white, transparent),
+    radial-gradient(2px 2px at 40px 70px, white, transparent),
+    radial-gradient(1px 1px at 90px 40px, white, transparent),
+    radial-gradient(2px 2px at 130px 80px, white, transparent),
+    radial-gradient(1px 1px at 160px 120px, white, transparent);
+  background-size: 200px 200px;
+  opacity: 0.35;
+  animation: starMove 120s linear infinite;
+  z-index: -1;
+}
+
+@keyframes starMove {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-2000px);
+  }
+}
+
+.glass-panel {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(34,211,238,0.4);
+  box-shadow:
+    0 0 20px rgba(34,211,238,0.2),
+    inset 0 0 10px rgba(34,211,238,0.1);
+}
+
+@keyframes floatTech {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.tech-float {
+  animation: floatTech 4s ease-in-out infinite;
+}
