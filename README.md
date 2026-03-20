@@ -196,7 +196,7 @@ Frontend URL:
 git clone https://github.com/Mondr23/BudgetWise-api.git
 cd travel-dashboard
 
-npm install
+npm install --legacy-peer-deps
 
 npm run dev
 ```
